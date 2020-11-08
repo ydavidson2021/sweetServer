@@ -1,41 +1,41 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const Campsite = require('../models/campsite');
+const Sweet= require('../models/sweet');
 const authenticate = require('../authenticate');
 const cors = require('./cors'); //created cors
 
-const campsiteRouter = express.Router();
+const sweeteRouter = express.Router();
 
-campsiteRouter.use(bodyParser.json());
+sweetRouter.use(bodyParser.json());
 
-campsiteRouter.route('/')
+sweetRouter.route('/')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200)) //preflight request with http options method 
 .get(cors.cors, (req, res, next) => {
-    Campsite.find()
+    Sweet.find()
     .populate('comments.author')
-    .then(campsites => {
+    .then(sweets => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(campsites);
+        res.json(sweets);
     })
     .catch(err => next(err));
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin,(req, res, next) => {
-    Campsite.create(req.body)
-    .then(campsite => {
-        console.log('Campsite Created ', campsite);
+    Sweet.create(req.body)
+    .then(sweet => {
+        console.log('Sweet Created ', sweet);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(campsite);
+        res.json(sweet);
     })
     .catch(err => next(err));
 })
 .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
     res.statusCode = 403;
-    res.end('PUT operation not supported on /campsites');
+    res.end('PUT operation not supported on /sweets');
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Campsite.deleteMany()
+    Sweet.deleteMany()
     .then(response => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -44,27 +44,27 @@ campsiteRouter.route('/')
     .catch(err => next(err));
 });
 
-campsiteRouter.route('/:campsiteId')
+sweetRouter.route('/:sweetId')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .get(cors.cors, (req, res, next) => {
-    Campsite.findById(req.params.campsiteId)
+    Sweet.findById(req.params.sweetId)
     .populate('comments.author')
-    .then(campsite => {
+    .then((sweet => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(campsite);
+        res.json(sweet);
     })
     .catch(err => next(err));
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
     res.statusCode = 403;
-    res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
+    res.end(`POST operation not supported on /sweets/${req.params.sweetId}`);
 })
 .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Campsite.findByIdAndUpdate(req.params.campsiteId, {
+    Sweet.findByIdAndUpdate(req.params.sweetId, {
         $set: req.body
     }, { new: true })
-    .then(campsite => {
+    .then(sweet => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json(campsite);
@@ -72,7 +72,7 @@ campsiteRouter.route('/:campsiteId')
     .catch(err => next(err));
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Campsite.findByIdAndDelete(req.params.campsiteId)
+    Sweet.findByIdAndDelete(req.params.sweetId)
     .then(response => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -82,18 +82,18 @@ campsiteRouter.route('/:campsiteId')
 });
 
 //handle comments
-campsiteRouter.route('/:campsiteId/comments')
+sweetRouter.route('/:sweetId/comments')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .get(cors.cors, (req, res, next) => {
-    Campsite.findById(req.params.campsiteId)
+    Sweet.findById(req.params.sweetId)
     .populate('comments.author')
-    .then(campsite => {
-        if (campsite) {
+    .then(sweet => {
+        if (sweet) {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
-            res.json(campsite.comments);
+            res.json(sweet.comments);
         } else {
-            err = new Error(`Campsite ${req.params.campsiteId} not found`);
+            err = new Error(`Sweet ${req.params.sweetId} not found`);
             err.status = 404; 
             return next(err);
         }
@@ -101,20 +101,20 @@ campsiteRouter.route('/:campsiteId/comments')
     .catch(err => next(err));
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-    Campsite.findById(req.params.campsiteId)
-    .then(campsite => {
-        if (campsite) {
+    Sweet.findById(req.params.sweetId)
+    .then(sweet => {
+        if (sweet) {
             req.body.author = req.user._id;
-            campsite.comments.push(req.body);
-            campsite.save() // save to mongodb database - not static , not uppercase - returns a promise
-            .then (campsite => {
+            sweet.comments.push(req.body);
+            sweet.save() // save to mongodb database - not static , not uppercase - returns a promise
+            .then (sweet => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json(campsite.comments);
+                res.json(sweet.comments);
             })
             .catch(err => next(err));            
         } else {
-            err = new Error(`Campsite ${req.params.campsiteId} not found`);
+            err = new Error(`Sweet ${req.params.sweetId} not found`);
             err.status = 404; 
             return next(err);
         }
@@ -123,24 +123,24 @@ campsiteRouter.route('/:campsiteId/comments')
 })
 .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
     res.statusCode = 403;
-    res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}/comments`);
+    res.end(`PUT operation not supported on /sweets/${req.params.sweetId}/comments`);
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Campsite.findById(req.params.campsiteId)
-    .then(campsite => {
-        if (campsite) {
-            for (let i = (campsite.comments.length-1); i >= 0; i--) {
-                campsite.comments.id(campsite.comments[i]._id).remove();
+    Sweet.findById(req.params.sweetId)
+    .then(sweet => {
+        if (sweet) {
+            for (let i = (sweet.comments.length-1); i >= 0; i--) {
+                sweet.comments.id(sweet.comments[i]._id).remove();
             }
-            campsite.save()
-            .then(campsite => {
+            sweet.save()
+            .then(sweet => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json(campsite);
+                res.json(sweet);
             })
             .catch(err => next(err));
         } else {
-            err = new Error(`Campsite ${req.params.campsiteId} not found`);
+            err = new Error(`Sweet ${req.params.sweetId} not found`);
             err.status = 404;
             return next(err);
         }
@@ -149,18 +149,18 @@ campsiteRouter.route('/:campsiteId/comments')
 });
 
 //specific commentId
-campsiteRouter.route('/:campsiteId/comments/:commentId')
+sweetRouter.route('/:sweetId/comments/:commentId')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .get(cors.cors, (req, res, next) => {
-    Campsite.findById(req.params.campsiteId)
+    Sweet.findById(req.params.sweetId)
     .populate('comments.author')
-    .then(campsite => {
-        if (campsite && campsite.comments.id(req.params.commentId)) {
+    .then(sweet => {
+        if (sweet && sweet.comments.id(req.params.commentId)) {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
-            res.json(campsite.comments.id(req.params.commentId));
-        } else if (!campsite) {
-            err = new Error(`Campsite ${req.params.campsiteId} not found`);
+            res.json(sweet.comments.id(req.params.commentId));
+        } else if (!sweet) {
+            err = new Error(`Sweet ${req.params.sweetId} not found`);
             err.status = 404;
             return next(err);
         } else {
@@ -173,26 +173,26 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
     res.statusCode = 403;
-    res.end(`POST operation not supported on /campsites/${req.params.campsiteId}/comments/${req.params.commentId}`);
+    res.end(`POST operation not supported on /sweets/${req.params.sweetId}/comments/${req.params.commentId}`);
 })
 //update existing data - only comment text and rating fields 
 //Task 4 --- workshop 
 .put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-    Campsite.findById(req.params.campsiteId)
-    .then(campsite => {
-        if (campsite && campsite.comments.id(req.params.commentId)) {
-            if((campsite.comments.id(req.params.commentId).author._id).equals(req.user._id)) {
+    Sweet.findById(req.params.sweetId)
+    .then(sweet => {
+        if (sweet && sweet.comments.id(req.params.commentId)) {
+            if((sweet.comments.id(req.params.commentId).author._id).equals(req.user._id)) {
                 if (req.body.rating) {
-                    campsite.comments.id(req.params.commentId).rating = req.body.rating;
+                    sweet.comments.id(req.params.commentId).rating = req.body.rating;
                 }
                 if (req.body.text) {
-                    campsite.comments.id(req.params.commentId).text = req.body.text;
+                    sweet.comments.id(req.params.commentId).text = req.body.text;
                 }
-                campsite.save()
-                .then(campsite => {
+                sweet.save()
+                .then(sweet => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.json(campsite);
+                    res.json(sweet);
                 })
                 .catch(err => next(err));
             } else {
@@ -200,8 +200,8 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
                 err.status = 403; 
                 return next(err);
             }
-        } else if (!campsite) {
-            err = new Error(`Campsite ${req.params.campsiteId} not found`);
+        } else if (!sweet) {
+            err = new Error(`Sweet ${req.params.sweetId} not found`);
             err.status = 404;
             return next(err);
         } else {
@@ -213,16 +213,16 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
     .catch(err => next(err));
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-    Campsite.findById(req.params.campsiteId)
-    .then(campsite => {
-        if (campsite && campsite.comments.id(req.params.commentId)) {
-            if((campsite.comments.id(req.params.commentId).author._id). equals(req.user._id)) {
-                campsite.comments.id(req.params.commentId).remove();
-                campsite.save()
-                .then(campsite => {
+    Sweet.findById(req.params.sweetId)
+    .then(sweet => {
+        if (sweet && sweet.comments.id(req.params.commentId)) {
+            if((sweet.comments.id(req.params.commentId).author._id). equals(req.user._id)) {
+                sweet.comments.id(req.params.commentId).remove();
+                sweet.save()
+                .then(sweet => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.json(campsite);
+                    res.json(sweet);
                 })
                 .catch(err => next(err));
             } else {
@@ -230,8 +230,8 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
                 err.status = 403; 
                 return next(err);
             }
-        } else if (!campsite) {
-            err = new Error(`Campsite ${req.params.campsiteId} not found`);
+        } else if (!sweet) {
+            err = new Error(`Sweet ${req.params.sweetId} not found`);
             err.status = 404;
             return next(err);
         } else {
@@ -243,4 +243,4 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
     .catch(err => next(err));
 });
 
-module.exports = campsiteRouter;
+module.exports = sweetRouter;

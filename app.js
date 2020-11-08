@@ -9,11 +9,8 @@ const config = require('./config');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 //Week 2 Express Generator Exercise 
-const campsiteRouter = require('./routes/campsiteRouter');
-const promotionRouter = require('./routes/promotionRouter');
-const partnerRouter = require('./routes/partnerRouter');
+const sweetRouter = require('./routes/sweetRouter');
 const uploadRouter = require('./routes/uploadRouter');
-//Task 3 Workshop 4
 const favoriteRouter = require('./routes/favoriteRouter');
 
 //connect to MongoDb server 
@@ -63,9 +60,7 @@ app.use('/users', usersRouter);
 app.use(express.static(path.join(__dirname, 'public')));
 
 //Week 2 Express Generator Exercise
-app.use('/campsites', campsiteRouter);
-app.use('/promotions', promotionRouter);
-app.use('/partners', partnerRouter);
+app.use('/sweets', sweetRouter);
 app.use('/imageUpload', uploadRouter);
 app.use('/favorites', favoriteRouter);
 
